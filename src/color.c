@@ -1,6 +1,8 @@
 // TODO Add HSV to RGB and vice versa
 // TODO Add A Linear Interpolation for the color_t thing to be used in gradient
 
+#include "utils.c"
+
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -14,23 +16,22 @@
 
 typedef struct
 {
-	uint8_t r, g, b;
-	uint16_t h;
-	uint8_t s, v;	 // 360° H, 100° for S and V
+	float r, g, b;
+	float h, s, v;	  // 360° H, 100° for S and V
 	char str[24];
 } color_t;
 
 void sgetRGB(char* buff, uint8_t r, uint8_t g, uint8_t b)
 {
-	sprintf(buff, "\033[38;2;%u;%u;%um", r, g, b);
+	sprintf(buff, "\033[48;2;%u;%u;%um", r, g, b);
 }
 
-void sgetGREY(char* buff, uint8_t g) { sprintf(buff, "\033[38;2;%u;%u;%um", g, g, g); }
+void sgetGREY(char* buff, uint8_t g) { sprintf(buff, "\033[48;2;%u;%u;%um", g, g, g); }
 
 const char* setGREY(color_t* color, uint8_t g)
 {
 	color->r = color->g = color->b = g;
-	sprintf(color->str, "\033[38;2;%u;%u;%um", g, g, g);
+	sprintf(color->str, "\033[48;2;%u;%u;%um", g, g, g);
 	return color->str;
 }
 
@@ -39,7 +40,7 @@ const char* setRGB(color_t* color, uint8_t r, uint8_t g, uint8_t b)
 	color->r = r;
 	color->g = g;
 	color->b = b;
-	sprintf(color->str, "\033[38;2;%u;%u;%um", r, g, b);
+	sprintf(color->str, "\033[48;2;%u;%u;%um", r, g, b);
 	return color->str;
 }
 
@@ -54,14 +55,14 @@ void setHSV(color_t* color, uint16_t h, uint8_t s, uint8_t v)
 
 void rgb2hsv(color_t* color)
 {
-	double r = color->r / 255.;
-	double g = color->g / 255.;
-	double b = color->b / 255.;
-	double CMax = MAX(MAX(r, g), b);
-	double CMin = MIN(MIN(r, g), b);
-	double delta = CMax - CMin;
+	float r = color->r / 255.;
+	float g = color->g / 255.;
+	float b = color->b / 255.;
+	float CMax = MAX(MAX(r, g), b);
+	float CMin = MIN(MIN(r, g), b);
+	float delta = CMax - CMin;
 
-	double h, s, v;
+	float h = 0., s = 0., v = 0.;
 
 	if(delta > 0.)
 	{
@@ -89,17 +90,17 @@ void rgb2hsv(color_t* color)
 	s *= 100.;
 	v *= 100.;
 
-	color->h = (uint16_t)h;
-	color->s = (uint8_t)s;
-	color->v = (uint8_t)v;
+	color->h = h;
+	color->s = s;
+	color->v = v;
 }
 
 void hsv2rgb(color_t* color)
 {
-	double H = fmod((color->h / 60.), 6), S = (color->s / 100.), V = (color->v / 100.);
-	double C = S * V;
-	double X = C * (1. - fabs(fmod(H, 2) - 1));
-	double M = V - C;
+	float H = fmod((color->h / 60.), 6), S = (color->s / 100.), V = (color->v / 100.);
+	float C = S * V;
+	float X = C * (1. - fabs(fmod(H, 2) - 1));
+	float M = V - C;
 
 	if(0 <= H && H < 1)
 	{
@@ -144,23 +145,48 @@ void hsv2rgb(color_t* color)
 		color->b = 0;
 	}
 
-	color->r += M * 255;
-	color->g += M * 255;
-	color->b += M * 255;
+	color->r += M * 255.f;
+	color->g += M * 255.f;
+	color->b += M * 255.f;
 }
 
 const char* setStr(color_t* color)
 {
-	sprintf(color->str, "\033[38;2;%u;%u;%um", color->r, color->g, color->b);
+	sprintf(color->str,
+			"\033[48;2;%u;%u;%um",
+			(uint8_t)color->r,
+			(uint8_t)color->g,
+			(uint8_t)color->b);
 	return color->str;
 }
 
-static const char RESET[] = "\033[m", BLACK[] = "\033[38;2;0;0;0m",
-				  WHITE[] = "\033[38;2;255;255;255m", RED[] = "\033[38;2;255;0;0m",
-				  GREEN[] = "\033[38;2;0;255;0m", BLUE[] = "\033[38;2;0;0;255m",
-				  YELLOW[] = "\033[38;2;255;255;0m", MAGENTA[] = "\033[38;2;255;0;255m",
-				  CYAN[] = "\033[38;0;2;255;255m", PURPLE[] = "\033[38;2;127;32;183m",
-				  LIME[] = "\033[38;2;111;255;8m", BROWN[] = "\033[38;2;142;69;23m",
-				  ORANGE[] = "\033[38;2;255;127;8m";
+// Maybe add a color_t* dest version of these
+
+color_t rgbInterp(color_t first, color_t second, int curr, int total)
+{
+	color_t result;
+	result.r = interpf(first.r, second.r, curr, total);
+	result.g = interpf(first.g, second.g, curr, total);
+	result.b = interpf(first.b, second.b, curr, total);
+	return result;
+}
+
+color_t hsvInterp(color_t first, color_t second, int curr, int total)
+{
+	color_t result;
+	result.h = interpf(first.h, second.h, curr, total);
+	result.s = interpf(first.s, second.s, curr, total);
+	result.v = interpf(first.v, second.v, curr, total);
+	hsv2rgb(&result);
+	return result;
+}
+
+static const char RESET[] = "\033[38m\033[48m", BLACK[] = "\033[48;2;0;0;0m",
+				  WHITE[] = "\033[48;2;255;255;255m", RED[] = "\033[48;2;255;0;0m",
+				  GREEN[] = "\033[48;2;0;255;0m", BLUE[] = "\033[48;2;0;0;255m",
+				  YELLOW[] = "\033[48;2;255;255;0m", MAGENTA[] = "\033[48;2;255;0;255m",
+				  CYAN[] = "\033[48;0;2;255;255m", PURPLE[] = "\033[48;2;127;32;183m",
+				  LIME[] = "\033[48;2;111;255;8m", BROWN[] = "\033[48;2;142;69;23m",
+				  ORANGE[] = "\033[48;2;255;127;8m";
 
 #endif
