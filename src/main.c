@@ -29,7 +29,8 @@ void gradient(const short width, const short height, color_t* first, color_t* se
 			setStr(&color);
 			printf("%s ", color.str);
 		}
-		printf("\n");
+		/* if(row != height - 1) */
+		/* 	printf("\n"); */
 		first->h = fmod((first->h + 0.018f), 360.f);
 		second->h = fmod((second->h + 0.018f), 360.f);
 	}
@@ -38,6 +39,7 @@ void gradient(const short width, const short height, color_t* first, color_t* se
 void signal_handle(int sig)
 {
 	printf("%d\b\033[?25h", sig);
+	printf("\033[38;2m;\033[48;2m");
 	exit(0);
 }
 
@@ -60,13 +62,16 @@ int main(int argc, const char** argv)
 	printf("\033[?25l");
 	short width, height;
 	printf("\033[2J");
+	uint8_t tick = 0U;
+
 	while(1)
 	{
-		getTermSize(&width, &height);
+		if((tick += 128U) > 0U)
+			getTermSize(&width, &height);
 		printf("\033[H");
 		gradient(width, height, &initial_color, &ending_color);
+		// 25 FPS
 		usleep(40000U);
 	}
-	printf("%s", RESET);
 	return 0;
 }
