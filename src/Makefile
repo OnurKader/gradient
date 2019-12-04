@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS= -g -std=c11 -Wall -Wextra -Wpedantic -Wshadow -O3 -lm
+CFLAGS= -g -std=gnu11 -Wall -Wextra -Wpedantic -Wshadow -O3 -lm
 
 all: clean build
 

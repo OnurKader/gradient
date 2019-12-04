@@ -17,20 +17,15 @@ void getTermSize(short* width, short* height)
 
 void gradient(const short width, const short height, color_t* first, color_t* second)
 {
-	/* rgb2hsv(first); */
-	/* rgb2hsv(second); */
 	for(short row = 0; row < height; ++row)
 	{
 		for(short col = 0; col < width; ++col)
 		{
-			color_t color;
-			color = hsvInterp(*first, *second, col, width);
+			color_t color = hsvInterp(*first, *second, col, width);
 			hsv2rgb(&color);
 			setStr(&color);
 			printf("%s ", color.str);
 		}
-		/* if(row != height - 1) */
-		/* 	printf("\n"); */
 		first->h = fmod((first->h + 0.018f), 360.f);
 		second->h = fmod((second->h + 0.018f), 360.f);
 	}
@@ -39,7 +34,7 @@ void gradient(const short width, const short height, color_t* first, color_t* se
 void signal_handle(int sig)
 {
 	printf("%d\b\033[?25h", sig);
-	printf("\033[38;2m;\033[48;2m");
+	printf("\033[38;2m;\033[48;2m\n");
 	exit(0);
 }
 
@@ -60,10 +55,11 @@ int main(int argc, const char** argv)
 	rgb2hsv(&initial_color);
 	rgb2hsv(&ending_color);
 	printf("\033[?25l");
-	short width, height;
 	printf("\033[2J");
 	uint8_t tick = 0U;
 
+	short width, height;
+	getTermSize(&width, &height);
 	while(1)
 	{
 		if((tick += 128U) > 0U)
