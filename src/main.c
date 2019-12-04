@@ -1,11 +1,15 @@
 #include "color.c"
 
+#include <errno.h>
 #include <getopt.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/ioctl.h>
+#include <term.h>
 #include <unistd.h>
+
+void display_inputs(int);
 
 void getTermSize(short* width, short* height)
 {
@@ -35,6 +39,7 @@ void signal_handle(int sig)
 {
 	printf("%d\b\033[?25h", sig);
 	printf("\033[38;2m;\033[48;2m\n");
+	display_inputs(1);
 	exit(0);
 }
 
@@ -60,14 +65,56 @@ int main(int argc, const char** argv)
 
 	short width, height;
 	getTermSize(&width, &height);
+	short initial_width = width;
+	short initial_height = height;
+	display_inputs(0);
 	while(1)
 	{
 		if((tick += 128U) > 0U)
+		{
 			getTermSize(&width, &height);
+			if(initial_width != width || initial_height != height)
+			{
+				initial_height = height;
+				initial_width = width;
+				printf("\033[2J");
+			}
+		}
 		printf("\033[H");
 		gradient(width, height, &initial_color, &ending_color);
 		// 25 FPS
 		usleep(40000U);
 	}
 	return 0;
+}
+
+void display_inputs(
+	int display)	// Credit to
+					// "https://www.reddit.com/r/C_Programming/comments/64524q/turning_off_echo_in_terminal_using_c/dfzso9b?utm_source=share&utm_medium=web2x"
+{
+	struct termios t;
+
+	/* Get console mode */
+	errno = 0;
+	if(tcgetattr(STDIN_FILENO, &t))
+	{
+		fprintf(stderr, "tcgetattr failed (%d)\n", errno);
+		return;
+	}
+
+	/* Set console mode to echo or no echo */
+	if(display)
+	{
+		t.c_lflag |= ECHO;
+	}
+	else
+	{
+		t.c_lflag &= ~((tcflag_t)ECHO);
+	}
+	errno = 0;
+	if(tcsetattr(STDIN_FILENO, TCSANOW, &t))
+	{
+		fprintf(stderr, "tcsetattr failed (%d)\n", errno);
+		return;
+	}
 }
