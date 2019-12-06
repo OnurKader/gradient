@@ -43,6 +43,31 @@ void signal_handle(int sig)
 	exit(0);
 }
 
+void setColors(int argc, const char** argv, color_t* init, color_t* end)
+{
+	switch(argc)
+	{
+		case 1:
+			init->r = 229;
+			init->g = 13;
+			init->b = 217;
+			end->r = 20;
+			end->g = 206;
+			end->b = 241;
+			break;
+		case 3:	   // check for the type of hex, #FF012A - 0x99FAFA - BBA022 or maybe
+				   // rgb(123, 234, 41)
+			exit(0);
+			break;
+		case 7:	   // R1 G1 B1 - R2 G2 B2
+			exit(0);
+			break;
+		default:
+			fprintf(stderr, "\t\033[31;1mWrong Number of Arguments%s\n", RESET);
+			exit(1);
+	}
+}
+
 int main(int argc, const char** argv)
 {
 	signal(SIGINT, signal_handle);
@@ -50,12 +75,13 @@ int main(int argc, const char** argv)
 
 	color_t initial_color;
 	color_t ending_color;
-	initial_color.r = 229;
-	initial_color.g = 13;
-	initial_color.b = 217;
-	ending_color.r = 20;
-	ending_color.g = 206;
-	ending_color.b = 241;
+	setColors(argc, argv, &initial_color, &ending_color);
+	/* initial_color.r = 229; */
+	/* initial_color.g = 13; */
+	/* initial_color.b = 217; */
+	/* ending_color.r = 20; */
+	/* ending_color.g = 206; */
+	/* ending_color.b = 241; */
 
 	rgb2hsv(&initial_color);
 	rgb2hsv(&ending_color);
@@ -77,7 +103,6 @@ int main(int argc, const char** argv)
 			{
 				initial_height = height;
 				initial_width = width;
-				printf("\033[2J");
 			}
 		}
 		printf("\033[H");
