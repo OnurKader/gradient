@@ -44,6 +44,8 @@ void gradient(short width, short height, color_t* first, color_t* second)
 		}
 		first->h = fmod((first->h + 0.01f), 360.f);
 		second->h = fmod((second->h + 0.01f), 360.f);
+		// Interp is wrong, when it wraps, the colors are the same but the step count?
+		// (width???) should change?
 	}
 }
 

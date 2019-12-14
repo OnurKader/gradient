@@ -27,3 +27,7 @@ are in the range __[0, 255]__
 _You can edit the Makefile to change the installation location and the
 binary name._
 
+## Short Clip of the Default Program
+
+
+
