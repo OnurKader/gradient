@@ -181,7 +181,7 @@ color_t hsvInterp(color_t first, color_t second, int curr, int total)
 	return result;
 }
 
-static const char RESET[] = "\033[38m\033[48m", BLACK[] = "\033[48;2;0;0;0m",
+static const char RESET[] = "\033[38m\033[48m\033[m", BLACK[] = "\033[48;2;0;0;0m",
 				  WHITE[] = "\033[48;2;255;255;255m", RED[] = "\033[48;2;255;0;0m",
 				  GREEN[] = "\033[48;2;0;255;0m", BLUE[] = "\033[48;2;0;0;255m",
 				  YELLOW[] = "\033[48;2;255;255;0m", MAGENTA[] = "\033[48;2;255;0;255m",
