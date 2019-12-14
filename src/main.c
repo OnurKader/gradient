@@ -30,6 +30,7 @@ void cls(void) { printf("\033[3J\033[H"); }
 
 unsigned long long frame_count = 0ULL;
 
+// Main function which prints the gradient
 void gradient(short width, short height, color_t* first, color_t* second)
 {
 	for(short row = 0; row < height; ++row)
@@ -46,6 +47,7 @@ void gradient(short width, short height, color_t* first, color_t* second)
 	}
 }
 
+// CTRL-C Exit properly
 void signal_int(int sig)
 {
 	printf("%d\b\033[?25h", sig);
@@ -55,18 +57,20 @@ void signal_int(int sig)
 	exit(0);
 }
 
+// Clear screen on resize
 void signal_resize(int sig)
 {
 	if(sig == SIGWINCH)
 	{
-		cls();
 		getTermSize(&t_width, &t_height);
+		cls();
 	}
 }
 
 void substr(const char* src, char* dest, size_t start, size_t len)
 {
-	size_t n = 0LLU;
+	// This is literally a for loop, so I'm going to use while
+	size_t n = 0ULL;
 	while(n < len)
 	{
 		dest[n] = src[start + n];
@@ -74,10 +78,12 @@ void substr(const char* src, char* dest, size_t start, size_t len)
 	}
 }
 
+// Convert a hex to integer
 int xx2int(const char* hex)
 {
 	char* endptr;
 	int res = strtol(hex, &endptr, 16);
+	// Check errno and maybe *endptr == '\0'
 	if(endptr == hex)
 		return -1;
 
@@ -96,8 +102,7 @@ void setColors(int argc, const char** argv, color_t* init, color_t* end)
 			end->g = 206;
 			end->b = 241;
 			break;
-		case 3:	   // check for the type of hex, #FF012A - 0x99FAFA - BBA022 or maybe
-				   // rgb(123, 234, 41)
+		case 3:
 			if(index(argv[1], '#') && index(argv[2], '#'))
 			{
 				// #RRGGBB #F2F0C8
@@ -123,12 +128,22 @@ void setColors(int argc, const char** argv, color_t* init, color_t* end)
 			{
 				// rgb(r,g,b) and with spaces rgb(r, g, b); Somehow just find the comma and
 				// go to the next non space? Maybe sscanf
+				uint8_t r, g, b;
+				sscanf(argv[1], "%*[rgb(]%hhu%*[,] %hhu%*[,] %hhu%*[)]", &r, &g, &b);
+				init->r = r;
+				init->g = g;
+				init->b = b;
+
+				sscanf(argv[2], "%*[rgb(]%hhu%*[,] %hhu%*[,] %hhu%*[)]", &r, &g, &b);
+				end->r = r;
+				end->g = g;
+				end->b = b;
 			}
 			else
 			{
 				fprintf(stderr,
 						"\t\033[31;1mWrong Type of Arguments%s\n\t#RRGGBB or "
-						"rgb(R,G,B)\n",
+						"rgb(R, G, B)\n",
 						RESET);
 				exit(1);
 			}
@@ -167,11 +182,11 @@ int main(int argc, const char** argv)
 		printf("\033[H");
 		gradient(t_width, t_height, &initial_color, &ending_color);
 		// 60 FPS
-		usleep(16666U);
+		usleep(16667U);
 	}
 
+	// Unreachable but whatever
 	free(grad_buffer);
-
 	display_inputs(1);
 	printf("\033[?25h");
 	printf("\033[38;2m;\033[48;2m\n");
