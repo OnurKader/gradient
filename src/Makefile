@@ -1,10 +1,10 @@
 CC=gcc
-CFLAGS= -g -std=gnu11 -Wall -Wextra -Wpedantic -Wshadow -O3 -lm
+CFLAGS= -g -std=gnu11 -Wall -Wextra -Wpedantic -Wshadow -O3 -lm -lpthread
 
 all: clean build
 
 clean:
-	clear && rm -f ../bin/* ./*.o
+	clear && rm -f ../bin/*
 
 build:
 	$(CC) -o ../bin/main main.c $(CFLAGS)
@@ -12,6 +12,6 @@ build:
 run: ../bin/main
 	clear && ../bin/main
 
-install: main
-	sudo ln -sf /home/beronthecolossus/Peki/C/Projects/gradient/bin/main /usr/local/bin/gradient
+install: ../bin/main
+	sudo cp -f ../bin/main /usr/local/bin/gradient
 
