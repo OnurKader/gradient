@@ -19,6 +19,8 @@ char* grad_buffer = NULL;
 // Buffer Mutex
 pthread_mutex_t buffer_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+float max(float a, float b) { return ((a) > (b) ? (a) : (b)); }
+
 struct grad_info
 {
 	short width, height;
@@ -37,10 +39,11 @@ void getTermSize(short* width, short* height)
 	*height = size.ws_row;
 }
 
-void cls(void) { printf("\033[3J\033[H"); }
+void cls(void) { printf("\033[2J\033[3J\033[H"); }
 
 unsigned long long frame_count = 0ULL;
 
+uint8_t f_dir = 1, s_dir = 1;
 // Main function which prints the gradient
 void _gradient(short width, short height, color_t* first, color_t* second)
 {
@@ -53,8 +56,28 @@ void _gradient(short width, short height, color_t* first, color_t* second)
 			setStr(&color);
 			printf("%s ", color.str);
 		}
-		first->h = fmod((first->h + 0.01f), 360.f);
-		second->h = fmod((second->h + 0.01f), 360.f);
+
+		if(first->h <= 0.f)
+			f_dir = 1;
+		else if(first->h >= 360.f)
+		{
+			f_dir = -1;
+			first->h = 360.f - 0.01f;
+		}
+
+		if(second->h <= 0.f)
+			s_dir = 1;
+		else if(second->h >= 360.f)
+		{
+			s_dir = -1;
+			second->h = 360.f - 0.01f;
+		}
+
+		/* first->h += f_dir * 0.01f; */
+		/* second->h += s_dir * 0.01f; */
+
+		first->h = max(0.f, fmod((first->h + f_dir * 0.01f), 360.f));
+		second->h = max(0.f, fmod((second->h + s_dir * 0.01f), 360.f));
 		// Interp is wrong, when it wraps, the colors are the same but the step count?
 		// (width???) should change?
 	}
@@ -144,6 +167,7 @@ void substr(const char* src, char* dest, size_t start, size_t len)
 int xx2int(const char* hex)
 {
 	char* endptr;
+	// Why not sscanf?
 	int res = strtol(hex, &endptr, 16);
 	// Check errno and maybe *endptr == '\0'
 	if(endptr == hex)
@@ -236,11 +260,11 @@ int main(int argc, const char** argv)
 
 	getTermSize(&t_width, &t_height);
 
-	pthread_mutex_lock(&buffer_mutex);
-	grad_buffer = malloc(t_width * t_height);
-	if(grad_buffer == NULL)
-		fprintf(stderr, "\033[1;31mCouldn't Allocate Memory!\033[m\n");
-	pthread_mutex_unlock(&buffer_mutex);
+	/* pthread_mutex_lock(&buffer_mutex); */
+	/* grad_buffer = malloc(t_width * t_height); */
+	/* if(grad_buffer == NULL) */
+	/* 	fprintf(stderr, "\033[1;31mCouldn't Allocate Memory!\033[m\n"); */
+	/* pthread_mutex_unlock(&buffer_mutex); */
 
 	display_inputs(0);
 
@@ -250,7 +274,7 @@ int main(int argc, const char** argv)
 	/* pthread_detach(draw_thread); */
 	while(1)
 	{
-		printf("\033H");
+		printf("\033[H");
 		_gradient(t_width, t_height, &initial_color, &ending_color);
 		// 60 FPS
 		usleep(16667U);
