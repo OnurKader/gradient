@@ -27,7 +27,13 @@ are in the range __[0, 255]__
 _You can edit the Makefile to change the installation location and the
 binary name._
 
-## Short Clip of the Default Program
+## Screenshot Because Asciinema is acting up
+
+![Default Look](https://raw.githubusercontent.com/OnurKader/gradient/buffer/data/2020-03-03%2014-59-58.png)
+
+![Default 2](https://raw.githubusercontent.com/OnurKader/gradient/buffer/data/2020-03-03%2015-00-00.png)
+
+![User Entered Colors](https://raw.githubusercontent.com/OnurKader/gradient/buffer/data/2020-03-03%2015-00-13.png)
 
 
 
